@@ -23,11 +23,10 @@ class ApiController(
     companion object {
         private val logger = LoggerFactory.getLogger(ApiController::class.java)
         val correlationID = "correlationId"
-        private val fnr = "fnr"
     }
 
     @GetMapping("/harAFPoffentlig")
-    fun harAFPoffentlig(@RequestHeader("fnr") fnr: String, request: HttpServletRequest): ResponseEntity<Any> {
+    fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, request: HttpServletRequest): ResponseEntity<Any> {
 
         return try {
             restTemplate.exchange(
@@ -36,7 +35,7 @@ class ApiController(
                 HttpMethod.GET,
                 HttpEntity<Void>(HttpHeaders()
                     .apply {
-                        this.add("fnr", fnr)
+                        this.add(FNR, fnr)
                         request.getHeader(correlationID)?.let { this.add(correlationID, it) }
                     })
             )
@@ -54,5 +53,4 @@ class ApiController(
         return ResponseEntity.status(e.statusCode).body(e.reason)
     }
 
-    fun HttpServletRequest.queryStringOrEmpty() = this.queryString?.let { "?$it" } ?: ""
 }
