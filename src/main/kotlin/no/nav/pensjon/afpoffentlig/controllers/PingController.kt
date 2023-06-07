@@ -14,7 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder
 @RequestMapping("ping")
 class PingController(
     private val restTemplate: RestTemplate,
-    @Value("\${TP_FSS_URL}") val penProxyFssUrl: String)
+    @Value("\${TP_FSS_URL}") val tpFssUrl: String)
 {
     companion object {
         private val logger = LoggerFactory.getLogger(PingController::class.java)
@@ -26,9 +26,9 @@ class PingController(
     @GetMapping("deep")
     fun deepPing(): String? {
         return try {
-            restTemplate.getForObject(UriComponentsBuilder.fromUriString("$penProxyFssUrl/ping/deep").build().toUri(), String::class.java)
+            restTemplate.getForObject(UriComponentsBuilder.fromUriString("$tpFssUrl/actuator/health/readiness").build().toUri(), String::class.java)
         } catch(e: Exception) {
-            logger.error("Ping mot pensjon-pen-proxy-fss feilet.", e)
+            logger.error("Ping mot tp-fss feilet.", e)
             throw HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
