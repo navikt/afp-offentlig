@@ -20,7 +20,7 @@ spec:
     - name: SPRING_PROFILES_ACTIVE
       value: prod
     - name: LOGGING_CONFIG
-      value: classpath:logback-json.xml
+      value: classpath:logback-nais.xml
     - name: ENVIRONMENT_NAME
       value: p
   image: {{image}}
