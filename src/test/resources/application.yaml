@@ -1,0 +1,3 @@
+maskinporten:
+  validation:
+    environment: dev

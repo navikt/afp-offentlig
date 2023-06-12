@@ -13,6 +13,13 @@ java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/navikt/maskinporten-validation")
+        credentials {
+            username = "token"
+            password = System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -20,13 +27,12 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("net.logstash.logback:logstash-logback-encoder:7.3")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:1.0.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation ("com.github.tomakehurst:wiremock:3.0.0-beta-8")
+    testImplementation ("com.github.tomakehurst:wiremock:2.27.2")
+    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:1.0.2")
 }
 
 tasks.withType<Test> {

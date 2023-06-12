@@ -1,6 +1,6 @@
 package no.nav.pensjon.afpoffentlig.controllers
 
-import jakarta.servlet.http.HttpServletRequest
+import no.nav.pensjonsamhandling.maskinporten.validation.annotation.Maskinporten
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
@@ -17,16 +17,18 @@ import org.springframework.web.util.UriComponentsBuilder
 @RestController
 @RequestMapping("/")
 class ApiController(
-    private val restTemplate: RestTemplate,
     @Value("\${TP_FSS_URL}") val tpFssUrl: String
 ) {
+    private val restTemplate = RestTemplate()
+    private val logger = LoggerFactory.getLogger(javaClass)
     companion object {
-        private val logger = LoggerFactory.getLogger(ApiController::class.java)
-        val correlationID = "correlationId"
+        const val FNR = "fnr"
+        const val CORRELATION_ID = "correlationId"
     }
 
     @GetMapping("/harAFPoffentlig")
-    fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, request: HttpServletRequest): ResponseEntity<Any> {
+    @Maskinporten("nav:pensjon/v1/tpregisteret")
+    fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, @RequestHeader(CORRELATION_ID, required = false) correlationID: String?, @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String): ResponseEntity<Any> {
 
         return try {
             restTemplate.exchange(
@@ -35,8 +37,9 @@ class ApiController(
                 HttpMethod.GET,
                 HttpEntity<Void>(HttpHeaders()
                     .apply {
-                        this.add(FNR, fnr)
-                        request.getHeader(correlationID)?.let { this.add(correlationID, it) }
+                        add(FNR, fnr)
+                        correlationID?.let { add(CORRELATION_ID, it) }
+                        add(HttpHeaders.AUTHORIZATION, auth)
                     })
             )
 
@@ -44,7 +47,7 @@ class ApiController(
             throw ResponseStatusException(e.statusCode, e.responseBodyAsString)
         } catch (e: HttpServerErrorException) {
             logger.warn("${e.statusCode}-feil fra proxy", e)
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
+            throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
         }
     }
 

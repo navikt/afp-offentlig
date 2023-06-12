@@ -11,10 +11,8 @@ spec:
       external:
         - host: "tp-api-q1.dev-fss-pub.nais.io"
   env:
-    - name: MASKINPORTEN_ISSUER
-      value: https://test.maskinporten.no/
-    - name: TP_FSS_SCOPE
-      value: api://dev-fss.samhandler.tp-q1/.default
+    - name: maskinporten.validation.environment
+      value: DEV
     - name: TP_FSS_URL
       value: https://tp-api-q1.dev-fss-pub.nais.io
     - name: SPRING_PROFILES_ACTIVE

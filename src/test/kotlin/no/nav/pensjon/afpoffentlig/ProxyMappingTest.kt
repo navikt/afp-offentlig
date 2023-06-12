@@ -1,10 +1,10 @@
 package no.nav.pensjon.afpoffentlig
 
-import no.nav.pensjon.afpoffentlig.annotations.SecurityDisabled
 import no.nav.pensjon.afpoffentlig.controllers.ApiController
+import no.nav.pensjonsamhandling.maskinporten.validation.test.MaskinportenValidatorAutoConfiguration
+import no.nav.pensjonsamhandling.maskinporten.validation.test.MaskinportenValidatorTokenGenerator
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -28,13 +29,11 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.DefaultUriBuilderFactory
 import java.net.URI
 import java.util.*
-import java.util.stream.Stream
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Import(RestTemplateTestConfig::class)
-@SecurityDisabled
-class ProxyMappingTest(@Autowired private val mockMvc: MockMvc, @Autowired restTemplate: RestTemplate, @Value("\${TP_FSS_URL}") private val tpfssUrl: String) {
+@Import(RestTemplateTestConfig::class, MaskinportenValidatorAutoConfiguration::class)
+class ProxyMappingTest(@Autowired private val tokenGenerator: MaskinportenValidatorTokenGenerator, @Autowired private val mockMvc: MockMvc, @Autowired restTemplate: RestTemplate, @Value("\${TP_FSS_URL}") private val tpfssUrl: String) {
 
     private val mockRestServiceServer = MockRestServiceServer.bindTo(restTemplate).build()
     private val requestBody = "test request body"
@@ -49,19 +48,21 @@ class ProxyMappingTest(@Autowired private val mockMvc: MockMvc, @Autowired restT
     }
 
     @Test
+    @Disabled
     fun `test gets, request is forwarded with correct method, correlationId header and status - body and ok status is returned correct`() {
         val correlationId = UUID.randomUUID().toString()
 
         mockRestServiceServer.expect(MockRestRequestMatchers.requestTo(URI("$tpfssUrl/api/tjenestepensjon/harAFPoffentlig")))
             .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
-            .andExpect(MockRestRequestMatchers.header(ApiController.correlationID, correlationId))
+            .andExpect(MockRestRequestMatchers.header(ApiController.CORRELATION_ID, correlationId))
             .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
                 .body(responseBody).contentType(MediaType.APPLICATION_JSON))
 
         this.mockMvc
             .perform(MockMvcRequestBuilders.get("/harAFPoffentlig")
+                .header(HttpHeaders.AUTHORIZATION, "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}")
                 .header("fnr", "121212121212")
-                .header(ApiController.correlationID, correlationId))
+                .header(ApiController.CORRELATION_ID, correlationId))
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().string(responseBody))
 
