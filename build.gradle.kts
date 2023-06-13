@@ -31,8 +31,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:1.0.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation ("com.github.tomakehurst:wiremock:2.27.2")
-    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:1.0.2")
+    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
+    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:1.1.0")
 }
 
 tasks.withType<Test> {

@@ -1,81 +1,93 @@
 package no.nav.pensjon.afpoffentlig
 
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.nav.pensjon.afpoffentlig.controllers.ApiController
-import no.nav.pensjonsamhandling.maskinporten.validation.test.MaskinportenValidatorAutoConfiguration
+import no.nav.pensjonsamhandling.maskinporten.validation.test.AutoConfigureMaskinportenValidator
 import no.nav.pensjonsamhandling.maskinporten.validation.test.MaskinportenValidatorTokenGenerator
-import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.springframework.test.web.client.MockRestServiceServer
-import org.springframework.test.web.client.match.MockRestRequestMatchers
-import org.springframework.test.web.client.response.MockRestResponseCreators
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.web.client.RestTemplate
-import org.springframework.web.util.DefaultUriBuilderFactory
-import java.net.URI
 import java.util.*
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureMockMvc
-@Import(RestTemplateTestConfig::class, MaskinportenValidatorAutoConfiguration::class)
-class ProxyMappingTest(@Autowired private val tokenGenerator: MaskinportenValidatorTokenGenerator, @Autowired private val mockMvc: MockMvc, @Autowired restTemplate: RestTemplate, @Value("\${TP_FSS_URL}") private val tpfssUrl: String) {
+@AutoConfigureMaskinportenValidator
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProxyMappingTest(
+    @Autowired private val tokenGenerator: MaskinportenValidatorTokenGenerator,
+    @Autowired private val mockMvc: MockMvc
+) {
 
-    private val mockRestServiceServer = MockRestServiceServer.bindTo(restTemplate).build()
-    private val requestBody = "test request body"
+    private val wireMockServer = WireMockServer(8080)
     private val responseBody = """{"json":"test"}"""
 
-    companion object {
-        @JvmStatic
-        @DynamicPropertySource
-        fun dynamicProperties(registry: DynamicPropertyRegistry) {
-            registry.add("TP_FSS_URL") { "http://tp-api-q1.dev-fss-pub.nais.io" }
-        }
+    @BeforeAll
+    fun setup() {
+        wireMockServer.start()
+    }
+
+    @AfterAll
+    fun tearDown() {
+        wireMockServer.stop()
     }
 
     @Test
-    @Disabled
     fun `test gets, request is forwarded with correct method, correlationId header and status - body and ok status is returned correct`() {
         val correlationId = UUID.randomUUID().toString()
+        val fnr = "121212121212"
+        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
 
-        mockRestServiceServer.expect(MockRestRequestMatchers.requestTo(URI("$tpfssUrl/api/tjenestepensjon/harAFPoffentlig")))
-            .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
-            .andExpect(MockRestRequestMatchers.header(ApiController.CORRELATION_ID, correlationId))
-            .andRespond(MockRestResponseCreators.withStatus(HttpStatus.OK)
-                .body(responseBody).contentType(MediaType.APPLICATION_JSON))
+        stubFor(
+            get(urlEqualTo("/api/tjenestepensjon/harAFPoffentlig"))
+                .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
+                .withHeader(ApiController.FNR, equalTo(fnr))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
+                .willReturn(aResponse().withBody(responseBody))
+        )
 
-        this.mockMvc
-            .perform(MockMvcRequestBuilders.get("/harAFPoffentlig")
-                .header(HttpHeaders.AUTHORIZATION, "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}")
-                .header("fnr", "121212121212")
-                .header(ApiController.CORRELATION_ID, correlationId))
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.get("/harAFPoffentlig")
+                    .header(HttpHeaders.AUTHORIZATION, authorization)
+                    .header(ApiController.FNR, fnr)
+                    .header(ApiController.CORRELATION_ID, correlationId)
+            )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().string(responseBody))
 
-        mockRestServiceServer.verify()
     }
-}
 
-@TestConfiguration
-class RestTemplateTestConfig(@Value("\${TP_FSS_URL}") private val proxyUrl: String) {
-    @Bean
-    fun restTemplate(): RestTemplate {
-        return RestTemplateBuilder()
-            .uriTemplateHandler(DefaultUriBuilderFactory(proxyUrl))
-            .build()
+    @Test
+    fun `test internal server error returns bad gateway`() {
+        val correlationId = UUID.randomUUID().toString()
+        val fnr = "121212121212"
+        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
+
+        stubFor(
+            get(urlEqualTo("/api/tjenestepensjon/harAFPoffentlig"))
+                .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
+                .withHeader(ApiController.FNR, equalTo(fnr))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
+                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        )
+
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.get("/harAFPoffentlig")
+                    .header(HttpHeaders.AUTHORIZATION, authorization)
+                    .header(ApiController.FNR, fnr)
+                    .header(ApiController.CORRELATION_ID, correlationId)
+            )
+            .andExpect(MockMvcResultMatchers.status().isBadGateway)
     }
 }
