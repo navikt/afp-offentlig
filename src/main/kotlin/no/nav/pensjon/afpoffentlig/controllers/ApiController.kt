@@ -28,21 +28,27 @@ class ApiController(
 
     @GetMapping("/harAFPoffentlig")
     @Maskinporten("nav:pensjon/v1/tpregisteret")
-    fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, @RequestHeader(CORRELATION_ID, required = false) correlationID: String?, @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String): ResponseEntity<String> {
+    fun harAFPoffentlig(
+        @RequestHeader(FNR) fnr: String,
+        @RequestHeader(CORRELATION_ID, required = false) correlationId: String?,
+        @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
+    ): ResponseEntity<String> {
 
         return try {
+            logger.debug("Received call with correlationId = $correlationId, forwarding to TP.")
             restTemplate.exchange<String>(
                 UriComponentsBuilder.fromUriString("$tpFssUrl/api/tjenestepensjon/harAFPoffentlig").build().toString(),
                 HttpMethod.GET,
                 HttpEntity<Nothing?>(HttpHeaders()
                     .apply {
                         add(FNR, fnr)
-                        correlationID?.let { add(CORRELATION_ID, it) }
+                        correlationId?.let { add(CORRELATION_ID, it) }
                         add(HttpHeaders.AUTHORIZATION, auth)
-                      })
+                    })
             ).also { logger.debug("statuscode: ${it.statusCode}, body: ${it.body}") }
 
         } catch(e: HttpClientErrorException) {
+            logger.debug("Call with correlationId = $correlationId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
             throw ResponseStatusException(e.statusCode, e.responseBodyAsString)
         } catch (e: HttpServerErrorException) {
             logger.warn("${e.statusCode}-feil fra proxy", e)

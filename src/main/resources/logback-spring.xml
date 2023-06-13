@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        </encoder>
+    </appender>
+
+    <springProfile name="prod">
+        <logger name="no.nav" level="INFO"/>
+    </springProfile>
+
+    <springProfile name="dev">
+        <logger name="io" level="ERROR"/>
+        <logger name="org" level="WARN"/>
+        <logger name="no.nav.pensjon.afpoffentlig.controllers.ApiController" level="DEBUG"/>
+        <logger name="org.springframework" level="DEBUG" additivity="false"/>
+    </springProfile>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_JSON"/>
+    </root>
+
+</configuration>
