@@ -28,14 +28,14 @@ class ApiController(
 
     @GetMapping("/harAFPoffentlig")
     @Maskinporten("nav:pensjon/v1/tpregisteret")
-    fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, @RequestHeader(CORRELATION_ID, required = false) correlationID: String?, @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String): ResponseEntity<Any> {
+    fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, @RequestHeader(CORRELATION_ID, required = false) correlationID: String?, @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String): ResponseEntity<String> {
 
         return try {
             restTemplate.exchange(
                 UriComponentsBuilder.fromUriString("$tpFssUrl/api/tjenestepensjon/harAFPoffentlig")
                     .build().toString(),
                 HttpMethod.GET,
-                HttpEntity<Void>(HttpHeaders()
+                HttpEntity<Nothing?>(HttpHeaders()
                     .apply {
                         add(FNR, fnr)
                         correlationID?.let { add(CORRELATION_ID, it) }
