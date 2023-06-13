@@ -31,17 +31,16 @@ class ApiController(
     fun harAFPoffentlig(@RequestHeader(FNR) fnr: String, @RequestHeader(CORRELATION_ID, required = false) correlationID: String?, @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String): ResponseEntity<String> {
 
         return try {
-            restTemplate.exchange(
-                UriComponentsBuilder.fromUriString("$tpFssUrl/api/tjenestepensjon/harAFPoffentlig")
-                    .build().toString(),
+            restTemplate.exchange<String>(
+                UriComponentsBuilder.fromUriString("$tpFssUrl/api/tjenestepensjon/harAFPoffentlig").build().toString(),
                 HttpMethod.GET,
                 HttpEntity<Nothing?>(HttpHeaders()
                     .apply {
                         add(FNR, fnr)
                         correlationID?.let { add(CORRELATION_ID, it) }
                         add(HttpHeaders.AUTHORIZATION, auth)
-                    })
-            )
+                      })
+            ).also { logger.debug("statuscode: ${it.statusCode}, body: ${it.body}") }
 
         } catch(e: HttpClientErrorException) {
             throw ResponseStatusException(e.statusCode, e.responseBodyAsString)

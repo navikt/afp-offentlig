@@ -9,6 +9,8 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -25,11 +27,11 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ProxyMappingTest(
     @Autowired private val tokenGenerator: MaskinportenValidatorTokenGenerator,
-    @Autowired private val mockMvc: MockMvc
+    @Autowired private val mockMvc: MockMvc,
 ) {
 
     private val wireMockServer = WireMockServer(8080)
-    private val responseBody = """{"json":"test"}"""
+    private val responseBody = """{"value": false }"""
 
     @BeforeAll
     fun setup() {
@@ -39,6 +41,17 @@ class ProxyMappingTest(
     @AfterAll
     fun tearDown() {
         wireMockServer.stop()
+    }
+
+    companion object {
+        @JvmStatic
+        private fun get500ServerErrors() = listOf(
+            HttpStatus.BAD_GATEWAY,
+            HttpStatus.NOT_IMPLEMENTED,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            HttpStatus.SERVICE_UNAVAILABLE,
+            HttpStatus.SERVICE_UNAVAILABLE
+        )
     }
 
     @Test
@@ -67,8 +80,9 @@ class ProxyMappingTest(
 
     }
 
-    @Test
-    fun `test internal server error returns bad gateway`() {
+    @ParameterizedTest
+    @MethodSource("get500ServerErrors")
+    fun `test error from server returns as bad gateway`(error: HttpStatus) {
         val correlationId = UUID.randomUUID().toString()
         val fnr = "121212121212"
         val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
@@ -78,7 +92,7 @@ class ProxyMappingTest(
                 .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
-                .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+                .willReturn(aResponse().withStatus(error.value()))
         )
 
         mockMvc
