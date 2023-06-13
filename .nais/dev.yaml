@@ -18,7 +18,7 @@ spec:
     - name: SPRING_PROFILES_ACTIVE
       value: dev
     - name: LOGGING_CONFIG
-      value: classpath:logback-nais.xml
+      value: classpath:logback-spring.xml
     - name: ENVIRONMENT_NAME
       value: q1
   image: {{image}}
