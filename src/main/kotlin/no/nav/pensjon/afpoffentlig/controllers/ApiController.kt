@@ -37,7 +37,7 @@ class ApiController(
         return try {
             logger.debug("Received call with correlationId = $correlationId, forwarding to TP.")
             restTemplate.exchange<String>(
-                UriComponentsBuilder.fromUriString("$tpFssUrl/api/tjenestepensjon/harAFPoffentlig").build().toString(),
+                UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
                 HttpMethod.GET,
                 HttpEntity<Nothing?>(HttpHeaders()
                     .apply {

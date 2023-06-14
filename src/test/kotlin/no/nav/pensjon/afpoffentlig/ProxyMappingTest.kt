@@ -61,7 +61,7 @@ class ProxyMappingTest(
         val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
 
         stubFor(
-            get(urlEqualTo("/api/tjenestepensjon/harAFPoffentlig"))
+            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
                 .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
@@ -88,7 +88,7 @@ class ProxyMappingTest(
         val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
 
         stubFor(
-            get(urlEqualTo("/api/tjenestepensjon/harAFPoffentlig"))
+            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
                 .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
