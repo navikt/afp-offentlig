@@ -8,7 +8,3 @@ management:
       exposure:
         include: health, prometheus
 
-springdoc:
-  swagger-ui:
-    url: /apidoc.yaml
-
