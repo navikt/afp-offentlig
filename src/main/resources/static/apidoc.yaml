@@ -50,8 +50,10 @@ components:
           type: boolean
           description: Informasjon om søker har afp-offentlig (true hvis ja, nei ellers)
   securitySchemes:
-    Ocp-Apim-Subscription-Key:
-      type: apiKey
-      description: ""
-      name: Ocp-Apim-Subscription-Key
-      in: header
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: [ ]

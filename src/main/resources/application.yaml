@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: apf-offentlig
   main:
     banner-mode: off
 
@@ -7,4 +9,9 @@ management:
     web:
       exposure:
         include: health, prometheus
+
+springdoc:
+  swagger-ui:
+    enabled: true
+
 
