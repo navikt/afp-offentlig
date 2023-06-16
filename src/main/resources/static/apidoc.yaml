@@ -10,17 +10,19 @@ servers:
 paths:
   /harAFPoffentlig:
     get:
+      security:
+        - bearerAuth: [ ]
       description: Sjekker hvis søker/person har AFP offentlig
       operationId: harAFPoffentlig
       parameters:
-        - name: Authorization
-          in: header
-          description: Format - byte. Standard Authorization header som inneholder et
-            Base64-kodet Bearer-token (JWT-aksesstoken) utstedt av Maskinporten (Difi).
-            Verdien må starte med "Bearer ", deretter følger tokenstrengen.
-          required: true
-          schema:
-            type: string
+        #        - name: Authorization
+        #          in: header
+        #          description: Format - byte. Standard Authorization header som inneholder et
+        #            Base64-kodet Bearer-token (JWT-aksesstoken) utstedt av Maskinporten (Difi).
+        #            Verdien må starte med "Bearer ", deretter følger tokenstrengen.
+        #          required: true
+        #          schema:
+        #            type: string
         - name: fnr
           in: header
           description: Format - String 11.
@@ -54,6 +56,5 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
 security:
   - bearerAuth: [ ]
