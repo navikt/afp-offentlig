@@ -9,7 +9,6 @@ management:
         include: health, prometheus
 
 springdoc:
-  api-docs:
-    enabled: false
   swagger-ui:
-    path: /apidoc.yaml
+    url: /apidoc.yaml
+
