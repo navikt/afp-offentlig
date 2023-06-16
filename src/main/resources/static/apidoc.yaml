@@ -11,7 +11,7 @@ paths:
   /harAFPoffentlig:
     get:
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       description: Sjekker hvis søker/person har AFP offentlig
       operationId: harAFPoffentlig
       parameters:
@@ -57,4 +57,4 @@ components:
       scheme: bearer
       bearerFormat: JWT
 security:
-  - bearerAuth: [ ]
+  - bearerAuth: []
