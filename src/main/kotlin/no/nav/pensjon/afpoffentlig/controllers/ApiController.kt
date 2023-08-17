@@ -27,7 +27,7 @@ class ApiController(
     }
 
     @GetMapping("/harAFPoffentlig")
-    @Maskinporten("nav:pensjon/v1/tpregisteret")
+    @Maskinporten("nav:pensjon/v1/afpoffentlig")
     fun harAFPoffentlig(
         @RequestHeader(FNR) fnr: String,
         @RequestHeader(CORRELATION_ID, required = false) correlationId: String?,
