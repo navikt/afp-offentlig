@@ -2,6 +2,7 @@ package no.nav.pensjon.afpoffentlig.controllers
 
 import no.nav.pensjonsamhandling.maskinporten.validation.annotation.Maskinporten
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
 import org.springframework.web.bind.annotation.*
@@ -12,6 +13,7 @@ import org.springframework.web.client.exchange
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
+import java.util.*
 
 
 @RestController
@@ -34,21 +36,24 @@ class ApiController(
         @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
     ): ResponseEntity<String> {
 
+        val xRequestId = correlationId  ?: UUID.randomUUID().toString()
         return try {
-            logger.debug("Received call with correlationId = $correlationId, forwarding to TP.")
-            restTemplate.exchange<String>(
-                UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
-                HttpMethod.GET,
-                HttpEntity<Nothing?>(HttpHeaders()
-                    .apply {
-                        add(FNR, fnr)
-                        correlationId?.let { add(CORRELATION_ID, it) }
-                        add(HttpHeaders.AUTHORIZATION, auth)
-                    })
-            ).also { logger.debug("statuscode: ${it.statusCode}, body: ${it.body}") }
-
+            MDC.putCloseable("x_request_id", xRequestId).use {
+                logger.debug("Received call with x_request_id = $xRequestId, forwarding to TP.")
+                restTemplate.exchange<String>(
+                    UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
+                    HttpMethod.GET,
+                    HttpEntity<Nothing?>(HttpHeaders()
+                        .apply {
+                            add(FNR, fnr)
+                            correlationId?.let { add(CORRELATION_ID, it) }
+                            add("x_request_id", xRequestId)
+                            add(HttpHeaders.AUTHORIZATION, auth)
+                        })
+                ).also { logger.debug("statuscode: ${it.statusCode}, body: ${it.body}") }
+            }
         } catch(e: HttpClientErrorException) {
-            logger.debug("Call with correlationId = $correlationId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
+            logger.debug("Call with x_request_id = $xRequestId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
             throw ResponseStatusException(e.statusCode, e.responseBodyAsString)
         } catch (e: HttpServerErrorException) {
             logger.warn("${e.statusCode}-feil fra proxy", e)
