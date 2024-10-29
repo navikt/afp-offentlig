@@ -50,10 +50,10 @@ class ApiController(
                             add("x_request_id", xRequestId)
                             add(HttpHeaders.AUTHORIZATION, auth)
                         })
-                ).also { logger.debug("statuscode: ${it.statusCode}, body: ${it.body}") }
+                ).also { logger.debug("statuscode: {}, body: {}", it.statusCode, it.body) }
             }
         } catch(e: HttpClientErrorException) {
-            logger.debug("Call with x_request_id = $xRequestId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
+            logger.warn("Call with x_request_id = $xRequestId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
             throw ResponseStatusException(e.statusCode, e.responseBodyAsString)
         } catch (e: HttpServerErrorException) {
             logger.warn("${e.statusCode}-feil fra proxy", e)
