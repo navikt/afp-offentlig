@@ -41,8 +41,6 @@ spec:
     enabled: true
     path: actuator/prometheus
   env:
-    - name: MASKINPORTEN_ISSUER
-      value: https://maskinporten.no/
     - name: TP_FSS_SCOPE
       value: api://prod-fss.samhandler.tp/.default
     - name: TP_FSS_URL

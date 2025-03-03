@@ -17,8 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.get
 import java.util.*
 
 @SpringBootTest
@@ -58,25 +57,26 @@ class ProxyMappingTest(
     fun `test gets, request is forwarded with correct method, correlationId header and status - body and ok status is returned correct`() {
         val correlationId = UUID.randomUUID().toString()
         val fnr = "121212121212"
-        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")}"
+        val token = tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")
 
         stubFor(
             get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
                 .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
                 .willReturn(aResponse().withBody(responseBody))
         )
 
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/harAFPoffentlig")
-                    .header(HttpHeaders.AUTHORIZATION, authorization)
-                    .header(ApiController.FNR, fnr)
-                    .header(ApiController.CORRELATION_ID, correlationId)
-            )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().string(responseBody))
+        mockMvc.get("/harAFPoffentlig") {
+            headers {
+                setBearerAuth(token.serialize())
+                set(ApiController.FNR, fnr)
+                set(ApiController.CORRELATION_ID, correlationId)
+            }
+        }.andExpect {
+            status { isOk()}
+            content { string(responseBody) }
+        }
 
     }
 
@@ -85,23 +85,24 @@ class ProxyMappingTest(
     fun `test error from server returns as bad gateway`(error: HttpStatus) {
         val correlationId = UUID.randomUUID().toString()
         val fnr = "121212121212"
-        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")}"
+        val token = tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")
 
         stubFor(
             get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
                 .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
-                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(authorization))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
                 .willReturn(aResponse().withStatus(error.value()))
         )
 
-        mockMvc
-            .perform(
-                MockMvcRequestBuilders.get("/harAFPoffentlig")
-                    .header(HttpHeaders.AUTHORIZATION, authorization)
-                    .header(ApiController.FNR, fnr)
-                    .header(ApiController.CORRELATION_ID, correlationId)
-            )
-            .andExpect(MockMvcResultMatchers.status().isBadGateway)
+        mockMvc.get("/harAFPoffentlig") {
+            headers {
+                setBearerAuth(token.serialize())
+                set(ApiController.FNR, fnr)
+                set(ApiController.CORRELATION_ID, correlationId)
+            }
+        }.andExpect {
+            status { isBadGateway() }
+        }
     }
 }
