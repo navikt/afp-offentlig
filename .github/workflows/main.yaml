@@ -1,4 +1,4 @@
-name: "Build and deploy afp-offentlig"
+name: "Build afp-offentlig"
 
 on:
   push:
@@ -55,56 +55,56 @@ jobs:
           tags: ${{ env.IMAGE }}
 
 
-  deployAppToDev:
-    name: Deploy app to dev
-    permissions:
-      packages: read
-      contents: read
-      id-token: write
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Deploy to dev-gcp
-      - name: Deploy to dev-gcp
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: dev-gcp
-          RESOURCE: .nais/dev.yaml
-          TEAM: pensjonsamhandling
+#  deployAppToDev:
+#    name: Deploy app to dev
+#    permissions:
+#      packages: read
+#      contents: read
+#      id-token: write
+#    needs: build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      # Deploy to dev-gcp
+#      - name: Deploy to dev-gcp
+#        uses: nais/deploy/actions/deploy@v2
+#        env:
+#          CLUSTER: dev-gcp
+#          RESOURCE: .nais/dev.yaml
+#          TEAM: pensjonsamhandling
 
-  "deployAppToDev-Q2":
-    name: Deploy app to dev-q2
-    permissions:
-      packages: read
-      contents: read
-      id-token: write
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Deploy to dev-gcp
-      - name: Deploy to dev-gcp
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: dev-gcp
-          RESOURCE: .nais/dev-q2.yaml
-          TEAM: pensjonsamhandling
-
-  "deployAppToProd":
-    name: Deploy app to Prod
-    permissions:
-      packages: read
-      contents: read
-      id-token: write
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Deploy to prod-gcp
-      - name: Deploy to prod-gcp
-        uses: nais/deploy/actions/deploy@v2
-        env:
-          CLUSTER: prod-gcp
-          RESOURCE: .nais/prod.yaml
-          TEAM: pensjonsamhandling
+#  "deployAppToDev-Q2":
+#    name: Deploy app to dev-q2
+#    permissions:
+#      packages: read
+#      contents: read
+#      id-token: write
+#    needs: build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      # Deploy to dev-gcp
+#      - name: Deploy to dev-gcp
+#        uses: nais/deploy/actions/deploy@v2
+#        env:
+#          CLUSTER: dev-gcp
+#          RESOURCE: .nais/dev-q2.yaml
+#          TEAM: pensjonsamhandling
+#
+#  "deployAppToProd":
+#    name: Deploy app to Prod
+#    permissions:
+#      packages: read
+#      contents: read
+#      id-token: write
+#    needs: build
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      # Deploy to prod-gcp
+#      - name: Deploy to prod-gcp
+#        uses: nais/deploy/actions/deploy@v2
+#        env:
+#          CLUSTER: prod-gcp
+#          RESOURCE: .nais/prod.yaml
+#          TEAM: pensjonsamhandling
