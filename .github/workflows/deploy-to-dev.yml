@@ -1,4 +1,4 @@
-name: "Deploy to gcp-q2"
+name: "Deploy to gcp"
 
 on:
   workflow_dispatch:
