@@ -1,15 +1,18 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    id("org.springframework.boot") version "3.0.4"
-    id("io.spring.dependency-management") version "1.1.0"
-    kotlin("jvm") version "1.8.21"
-    kotlin("plugin.spring") version "1.8.21"
+    id("org.springframework.boot") version "3.4.1"
+    id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.spring") version "2.1.0"
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 group = "no.nav.pensjon"
 version = "1.0.0"
-java.sourceCompatibility = JavaVersion.VERSION_18
 
 repositories {
     mavenCentral()
@@ -23,27 +26,20 @@ repositories {
 }
 
 dependencies {
-    implementation("ch.qos.logback:logback-access")
     implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("net.logstash.logback:logstash-logback-encoder:7.3")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
-    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:1.0.2")
+    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:2.0.3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
-    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:1.1.0")
+    testImplementation("org.wiremock", "wiremock-jetty12", "3.9.1")
+    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:2.0.3")
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "18"
+tasks {
+    test {
+        useJUnitPlatform()
     }
 }

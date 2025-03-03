@@ -58,7 +58,7 @@ class ProxyMappingTest(
     fun `test gets, request is forwarded with correct method, correlationId header and status - body and ok status is returned correct`() {
         val correlationId = UUID.randomUUID().toString()
         val fnr = "121212121212"
-        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
+        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")}"
 
         stubFor(
             get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
@@ -85,7 +85,7 @@ class ProxyMappingTest(
     fun `test error from server returns as bad gateway`(error: HttpStatus) {
         val correlationId = UUID.randomUUID().toString()
         val fnr = "121212121212"
-        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/tpregisteret", "12345678910")}"
+        val authorization = "bearer ${tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")}"
 
         stubFor(
             get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
