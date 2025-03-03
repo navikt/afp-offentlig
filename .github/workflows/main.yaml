@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+env:
+  IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
 jobs:
   build:
     name: Build and release
@@ -26,9 +28,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gradle clean build
 
-
-      - name: Create tag
-        run: echo "TAG=$(date "+%Y.%m.%d")-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: "Login to GitHub Docker Registry"
         uses: docker/login-action@v3.3.0
         with:
@@ -40,7 +39,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ env.TAG }}
+          tags: ${{ env.IMAGE }}
 
 
   deployAppToDev:
@@ -59,7 +58,6 @@ jobs:
         env:
           CLUSTER: dev-gcp
           RESOURCE: .nais/dev.yaml
-          IMAGE: ghcr.io/${{ github.repository }}:${{ env.TAG }}
           TEAM: pensjonsamhandling
 
   "deployAppToDev-Q2":
@@ -78,7 +76,6 @@ jobs:
         env:
           CLUSTER: dev-gcp
           RESOURCE: .nais/dev-q2.yaml
-          IMAGE: ghcr.io/${{ github.repository }}:${{ env.TAG }}
           TEAM: pensjonsamhandling
 
   "deployAppToProd":
@@ -97,5 +94,4 @@ jobs:
         env:
           CLUSTER: prod-gcp
           RESOURCE: .nais/prod.yaml
-          IMAGE: ghcr.io/${{ github.repository }}:${{ env.TAG }}
           TEAM: pensjonsamhandling
