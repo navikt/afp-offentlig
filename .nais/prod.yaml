@@ -1,15 +1,45 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: "afp-offentlig"
-  namespace: "pensjonsamhandling"
+  name: afp-offentlig
+  namespace: pensjonsamhandling
   labels:
-    "team": "pensjonsamhandling"
+    "team": pensjonsamhandling
 spec:
+  image: {{ image }}
+  ingresses:
+    - https://afp-offentlig.nav.no
+  azure:
+    application:
+      enabled: true
   accessPolicy:
     outbound:
       external:
         - host: "tp-api.prod-fss-pub.nais.io"
+  liveness:
+    path: actuator/health/liveness
+    port: 8080
+    initialDelay: 20
+    timeout: 60
+  readiness:
+    path: actuator/health/readiness
+    port: 8080
+    initialDelay: 20
+    timeout: 60
+  replicas:
+    min: 2
+    max: 2
+    cpuThresholdPercentage: 50
+  resources:
+    limits:
+      cpu: 10m
+      memory: 256Mi
+    requests:
+      cpu: 1m
+      memory: 256Mi
+  prometheus:
+    enabled: true
+    path: actuator/prometheus
   env:
     - name: MASKINPORTEN_ISSUER
       value: https://maskinporten.no/
@@ -23,33 +53,3 @@ spec:
       value: classpath:logback-spring.xml
     - name: ENVIRONMENT_NAME
       value: p
-  image: {{image}}
-  liveness:
-    path: "/actuator/health/liveness"
-    port: 8080
-    initialDelay: 20
-    timeout: 60
-  readiness:
-    path: "/actuator/health/readiness"
-    port: 8080
-    initialDelay: 20
-    timeout: 60
-  replicas:
-    min: 2
-    max: 2
-    cpuThresholdPercentage: 50
-  prometheus:
-    enabled: true
-    path: "/actuator/prometheus"
-  resources:
-    limits:
-      cpu: "10"
-      memory: "256Mi"
-    requests:
-      cpu: "1"
-      memory: "256Mi"
-  ingresses:
-    - https://afp-offentlig.nav.no
-  azure:
-    application:
-      enabled: true
