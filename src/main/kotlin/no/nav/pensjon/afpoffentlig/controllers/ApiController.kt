@@ -39,7 +39,7 @@ class ApiController(
         val xRequestId = correlationId  ?: UUID.randomUUID().toString()
         return try {
             MDC.putCloseable("x_request_id", xRequestId).use {
-                logger.debug("Received call with x_request_id = $xRequestId, forwarding to TP.")
+                logger.info("Received call with x_request_id = $xRequestId, forwarding to TP.")
                 restTemplate.exchange<String>(
                     UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
                     HttpMethod.GET,
@@ -47,10 +47,10 @@ class ApiController(
                         .apply {
                             add(FNR, fnr)
                             correlationId?.let { add(CORRELATION_ID, it) }
-                            add("x_request_id", xRequestId)
+                            add("X-Request-Id", xRequestId)
                             add(HttpHeaders.AUTHORIZATION, auth)
                         })
-                ).also { logger.debug("statuscode: {}, body: {}", it.statusCode, it.body) }
+                ).also { logger.info("statuscode: {}, body: {}", it.statusCode, it.body) }
             }
         } catch(e: HttpClientErrorException) {
             logger.warn("Call with x_request_id = $xRequestId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
