@@ -32,10 +32,8 @@ spec:
     cpuThresholdPercentage: 50
   resources:
     limits:
-      cpu: 10m
       memory: 256Mi
     requests:
-      cpu: 1m
       memory: 256Mi
   prometheus:
     enabled: true
