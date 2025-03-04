@@ -46,6 +46,7 @@ class ApiController(
                     HttpEntity<Nothing?>(HttpHeaders()
                         .apply {
                             add(FNR, fnr)
+                            correlationId?.let { add(CORRELATION_ID, it) }
                             add("X-Request-Id", xRequestId)
                             add(HttpHeaders.AUTHORIZATION, auth)
                         })
