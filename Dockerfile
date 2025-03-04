@@ -7,7 +7,8 @@ WORKDIR /app
 
 COPY build/libs/afp-offentlig-1.0.0.jar app.jar
 
-CMD ["java", "-verbose", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-verbose", "-jar", "app.jar"]
 
+#CMD ["app.jar"]
 #ENTRYPOINT [ "java", "-jar", "/app/app.jar" ]
 #CMD ["-jar", "/app/app.jar"]
