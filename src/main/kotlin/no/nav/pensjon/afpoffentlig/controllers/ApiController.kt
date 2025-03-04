@@ -87,6 +87,7 @@ class ApiController(
         ): ClientHttpResponse {
             logger.info("Removing request header ${HttpHeaders.TRANSFER_ENCODING}")
             request.headers.remove(HttpHeaders.TRANSFER_ENCODING)
+            request.headers.remove("transfer-encoding")
 
             return execution.execute(request, body)
         }
