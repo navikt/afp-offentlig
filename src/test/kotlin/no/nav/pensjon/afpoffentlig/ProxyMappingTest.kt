@@ -61,7 +61,6 @@ class ProxyMappingTest(
 
         stubFor(
             get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
-                .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
                 .willReturn(aResponse().withBody(responseBody))
@@ -89,7 +88,6 @@ class ProxyMappingTest(
 
         stubFor(
             get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
-                .withHeader(ApiController.CORRELATION_ID, equalTo(correlationId))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
                 .willReturn(aResponse().withStatus(error.value()))
