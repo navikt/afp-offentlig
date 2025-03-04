@@ -5,9 +5,9 @@ EXPOSE 8080
 
 WORKDIR /app
 
-COPY build/libs/afp-offentlig-1.0.0.jar app.jar
+COPY build/libs/afp-offentlig-1.0.0.jar .
 
-ENTRYPOINT ["java", "-verbose", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "*.jar"]
 
 #CMD ["app.jar"]
 #ENTRYPOINT [ "java", "-jar", "/app/app.jar" ]
