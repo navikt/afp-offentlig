@@ -9,9 +9,8 @@ spec:
   image: {{ image }}
   ingresses:
     - https://afp-offentlig-q2.ekstern.dev.nav.no
-  azure:
-    application:
-      enabled: true
+  maskinporten:
+    enabled: true
   accessPolicy:
     outbound:
       external:
