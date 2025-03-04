@@ -81,10 +81,12 @@ class ApiController(
     }
 
     private class RemoveInterceptors() : ClientHttpRequestInterceptor {
+        private val logger = LoggerFactory.getLogger(javaClass)
+
         override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution
         ): ClientHttpResponse {
-
-            request.headers.remove("TRANSFER_ENCODING")
+            logger.info("Removing request header ${HttpHeaders.TRANSFER_ENCODING}")
+            request.headers.remove(HttpHeaders.TRANSFER_ENCODING)
 
             return execution.execute(request, body)
         }
