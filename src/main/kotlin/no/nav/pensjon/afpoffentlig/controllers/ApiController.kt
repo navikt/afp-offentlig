@@ -38,25 +38,24 @@ class ApiController(
 
         val xRequestId = correlationId  ?: UUID.randomUUID().toString()
         return try {
-            MDC.putCloseable("x_request_id", xRequestId).use {
-                logger.info("Received call with x_request_id = $xRequestId, forwarding to TP.")
+            MDC.putCloseable("X-Request-Id", xRequestId).use {
+                logger.info("Received call with X-Request-Id = $xRequestId, forwarding to TP.")
                 restTemplate.exchange<String>(
                     UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
                     HttpMethod.GET,
                     HttpEntity<Nothing?>(HttpHeaders()
                         .apply {
                             add(FNR, fnr)
-                            correlationId?.let { add(CORRELATION_ID, it) }
                             add("X-Request-Id", xRequestId)
                             add(HttpHeaders.AUTHORIZATION, auth)
                         })
                 ).also { logger.info("statuscode: {}, body: {}", it.statusCode, it.body) }
             }
         } catch(e: HttpClientErrorException) {
-            logger.warn("Call with x_request_id = $xRequestId received error from TP: ${e.statusCode.value()} - ${e.responseBodyAsString}")
+            logger.warn("Client Error with X-Request-Id = $xRequestId received error from TP: ${e.statusCode.value()}", e)
             throw ResponseStatusException(e.statusCode, e.responseBodyAsString)
         } catch (e: HttpServerErrorException) {
-            logger.warn("${e.statusCode}-feil fra proxy", e)
+            logger.warn("Server Error from proxy with X-Request-Id = $xRequestId:  ${e.statusCode.value()}", e)
             throw ResponseStatusException(HttpStatus.BAD_GATEWAY)
         }
     }
