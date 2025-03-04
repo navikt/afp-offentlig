@@ -4,7 +4,11 @@ import no.nav.pensjonsamhandling.maskinporten.validation.annotation.Maskinporten
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.*
+import org.springframework.http.client.ClientHttpRequestExecution
+import org.springframework.http.client.ClientHttpRequestInterceptor
+import org.springframework.http.client.ClientHttpResponse
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
@@ -21,7 +25,7 @@ import java.util.*
 class ApiController(
     @Value("\${TP_FSS_URL}") val tpFssUrl: String
 ) {
-    private val restTemplate = RestTemplate()
+    private val restTemplate = createRestTemplate()
     private val logger = LoggerFactory.getLogger(javaClass)
     companion object {
         const val FNR = "fnr"
@@ -40,17 +44,7 @@ class ApiController(
         return try {
             MDC.putCloseable("X-Request-Id", xRequestId).use {
                 logger.info("Received call with X-Request-Id = $xRequestId, forwarding to TP.")
-                restTemplate.exchange<String>(
-                    UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
-                    HttpMethod.GET,
-                    HttpEntity<Nothing?>(HttpHeaders()
-                        .apply {
-                            add(FNR, fnr)
-                            correlationId?.let { add(CORRELATION_ID, it) }
-                            add("X-Request-Id", xRequestId)
-                            add(HttpHeaders.AUTHORIZATION, auth)
-                        })
-                ).also { logger.info("statuscode: {}, body: {}", it.statusCode, it.body) }
+                httpTemplateCallTP(fnr, xRequestId, auth)
             }
         } catch(e: HttpClientErrorException) {
             logger.warn("Client Error with X-Request-Id = $xRequestId received error from TP: ${e.statusCode.value()}", e)
@@ -61,9 +55,39 @@ class ApiController(
         }
     }
 
+    private fun httpTemplateCallTP(fnr: String, xRequestId: String, auth: String): ResponseEntity<String> {
+        return restTemplate.exchange<String>(
+            UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
+            HttpMethod.GET,
+            HttpEntity<Nothing?>(HttpHeaders()
+                .apply {
+                    add(FNR, fnr)
+                    add("X-Request-Id", xRequestId)
+                    add(HttpHeaders.AUTHORIZATION, auth)
+                })
+        ).also { logger.info("statuscode: {}, body: {}", it.statusCode, it.body) }
+    }
+
+
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatusException(e: ResponseStatusException, request: WebRequest): ResponseEntity<Any> {
         return ResponseEntity.status(e.statusCode).body(e.reason)
+    }
+
+    fun createRestTemplate(): RestTemplate {
+        return RestTemplateBuilder()
+            .additionalInterceptors(RemoveInterceptors())
+            .build()
+    }
+
+    private class RemoveInterceptors() : ClientHttpRequestInterceptor {
+        override fun intercept(request: HttpRequest, body: ByteArray, execution: ClientHttpRequestExecution
+        ): ClientHttpResponse {
+
+            request.headers.remove("TRANSFER_ENCODING")
+
+            return execution.execute(request, body)
+        }
     }
 
 }
