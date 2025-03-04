@@ -17,6 +17,7 @@
         <logger name="org" level="WARN"/>
         <logger name="no.nav.pensjon.afpoffentlig.controllers.ApiController" level="DEBUG"/>
         <logger name="org.springframework" level="DEBUG" additivity="false"/>
+        <logger name="no.nav.pensjonsamhandling.maskinporten" level="DEBUG"/>
     </springProfile>
 
     <root level="INFO">
