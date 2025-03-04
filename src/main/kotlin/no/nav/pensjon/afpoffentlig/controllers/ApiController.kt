@@ -38,13 +38,15 @@ class ApiController(
         @RequestHeader(FNR) fnr: String,
         @RequestHeader(CORRELATION_ID, required = false) correlationId: String?,
         @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
-    ): ResponseEntity<String> {
+    ): String {
 
         val xRequestId = correlationId  ?: UUID.randomUUID().toString()
-        return try {
+        try {
             MDC.putCloseable("X-Request-Id", xRequestId).use {
                 logger.info("Received call with X-Request-Id = $xRequestId, forwarding to TP.")
-                httpTemplateCallTP(fnr, xRequestId, auth)
+                val result = httpTemplateCallTP(fnr, xRequestId, auth)
+                result.body?.let { logger.info("Body: $it") }
+                return result.body
             }
         } catch(e: HttpClientErrorException) {
             logger.warn("Client Error with X-Request-Id = $xRequestId received error from TP: ${e.statusCode.value()}", e)
@@ -59,15 +61,17 @@ class ApiController(
         return restTemplate.exchange<String>(
             UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
             HttpMethod.GET,
-            HttpEntity<Nothing?>(HttpHeaders()
-                .apply {
-                    add(FNR, fnr)
-                    add("X-Request-Id", xRequestId)
-                    add(HttpHeaders.AUTHORIZATION, auth)
-                })
+            HttpEntity<Any?>(buildHeaders(fnr, xRequestId, auth))
         ).also { logger.info("statuscode: {}, body: {}", it.statusCode, it.body) }
     }
 
+    private fun buildHeaders(fnr: String, xRequestId: String, auth: String): HttpHeaders {
+        val headers = HttpHeaders()
+        headers.add(FNR, fnr)
+        headers.add("X-Request-Id", xRequestId)
+        headers.add(HttpHeaders.AUTHORIZATION, auth)
+        return headers
+    }
 
     @ExceptionHandler(ResponseStatusException::class)
     fun handleResponseStatusException(e: ResponseStatusException, request: WebRequest): ResponseEntity<Any> {
