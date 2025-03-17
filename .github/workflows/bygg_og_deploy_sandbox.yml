@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_and_tag:
-    name: 'Build and tag'
+    name: Build and tag
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -27,7 +27,7 @@ jobs:
         with:
           java-version: 21
           distribution: temurin
-          cache: 'gradle'
+          cache: gradle
 
       # Gradlew Build and run test
       - name: Setup Gradle
@@ -44,13 +44,13 @@ jobs:
           team: pensjonsamhandling
           tag: ${{ github.event.repository.name }}
           pull: true
-          image_suffix: "sandbox"
+          image_suffix: sandbox
 
   deployToDev:
     permissions:
-      contents: "read"
-      id-token: "write"
-    name: 'Deploy NAIS Dev/Sandbox'
+      contents: read
+      id-token: write
+    name: Deploy NAIS Dev/Sandbox
     needs: build_and_tag
     outputs:
       image: ${{ needs.build_and_tag.outputs.image }}
@@ -60,15 +60,15 @@ jobs:
       - name: Deploy to Dev
         uses: nais/deploy/actions/deploy@v2
         env:
-          "CLUSTER": dev-fss
-          "RESOURCE": nais/dev-q2.yaml
-          "IMAGE": ${{ needs.build_and_tag.outputs.image }}
+          CLUSTER: dev-gcp
+          RESOURCE: nais/dev-q2.yaml
+          IMAGE: ${{ needs.build_and_tag.outputs.image }}
 
   deployToQ1:
     permissions:
-      contents: "read"
-      id-token: "write"
-    name: 'Deploy NAIS Q1'
+      contents: read
+      id-token: write
+    name: Deploy NAIS Q1
     needs: build_and_tag
     outputs:
       image: ${{ needs.build_and_tag.outputs.image }}
@@ -78,6 +78,6 @@ jobs:
       - name: Deploy to Dev
         uses: nais/deploy/actions/deploy@v2
         env:
-          "CLUSTER": dev-fss
-          "RESOURCE": nais/dev.yaml
-          "IMAGE": ${{ needs.build_and_tag.outputs.image }}
+          CLUSTER: dev-gcp
+          RESOURCE: nais/dev.yaml
+          IMAGE: ${{ needs.build_and_tag.outputs.image }}
