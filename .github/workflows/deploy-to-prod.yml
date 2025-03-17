@@ -27,6 +27,6 @@ jobs:
         uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          RESOURCE: .nais/prod.yaml
-          IMAGE: ghcr.io/${{ github.repository }}:${{ inputs.version }}
+          RESOURCE: nais/prod.yaml
+          IMAGE: ${{ steps.docker-push.outputs.image }}
           TEAM: pensjonsamhandling
