@@ -6,8 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  IMAGE: ghcr.io/${{ github.repository }}:${{ github.sha }}
 jobs:
   build:
     name: Build and release
@@ -17,42 +15,27 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: tyriis/docker-image-tag-exists@v2.1.0
-        id: check-tag
-        with:
-          registry: ghcr.io
-          repository: ${{ github.repository }}
-          tag: ${{ github.sha }}
-
       - uses: actions/checkout@v4
-        if: ${{ steps.check-tag.outputs.tag != 'found' }}
       - uses: actions/setup-java@v4
-        if: ${{ steps.check-tag.outputs.tag != 'found' }}
         with:
           java-version: 21
           distribution: temurin
+          cache: gradle
 
       # Build
       - name: Build
-        if: ${{ steps.check-tag.outputs.tag != 'found' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gradle clean build
 
-      - name: Login to GitHub Docker Registry
-        if: ${{ steps.check-tag.outputs.tag != 'found' }}
-        uses: docker/login-action@v3.3.0
+      # Build image
+      - name: Nais docker-build
+        uses: nais/docker-build-push@v0
+        id: docker-push
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push docker image
-        if: ${{ steps.check-tag.outputs.tag != 'found' }}
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ env.IMAGE }}
+          team: pensjonsamhandling
+          tag: ${{ github.event.repository.name }}
+          pull: true
 
 
 #  deployAppToDev:
