@@ -58,6 +58,6 @@ jobs:
       - name: Deploy to PROD
         uses: nais/deploy/actions/deploy@v2
         env:
-          "CLUSTER": prod-fss
+          "CLUSTER": prod-gcp
           "RESOURCE": nais/prod.yaml
           "IMAGE": ${{ needs.build_and_tag.outputs.image }}
