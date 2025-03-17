@@ -1,0 +1,83 @@
+name: Bygg og deploy dev/sandbox
+
+on:
+  push:
+    branches:
+      - sandbox
+
+jobs:
+  build_and_tag:
+    name: 'Build and tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      checks: write
+    outputs:
+      image: ${{ steps.docker-push.outputs.image }}
+    steps:
+      # PULL REPO
+      - name: Pull repo
+        uses: actions/checkout@v4
+
+      # JAVA
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: 'gradle'
+
+      # Gradlew Build and run test
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11
+      - name: Build and test with Gradle
+        run: ./gradlew build --stacktrace
+
+      - name: Nais docker-build
+        uses: nais/docker-build-push@v0
+        id: docker-push
+        with:
+          team: pensjonsamhandling
+          tag: ${{ github.event.repository.name }}
+          pull: true
+          image_suffix: "sandbox"
+
+  deployToDev:
+    permissions:
+      contents: "read"
+      id-token: "write"
+    name: 'Deploy NAIS Dev/Sandbox'
+    needs: build_and_tag
+    outputs:
+      image: ${{ needs.build_and_tag.outputs.image }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Dev
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          "CLUSTER": dev-fss
+          "RESOURCE": nais/dev-q2.yaml
+          "IMAGE": ${{ needs.build_and_tag.outputs.image }}
+
+  deployToQ1:
+    permissions:
+      contents: "read"
+      id-token: "write"
+    name: 'Deploy NAIS Q1'
+    needs: build_and_tag
+    outputs:
+      image: ${{ needs.build_and_tag.outputs.image }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Dev
+        uses: nais/deploy/actions/deploy@v2
+        env:
+          "CLUSTER": dev-fss
+          "RESOURCE": nais/dev.yaml
+          "IMAGE": ${{ needs.build_and_tag.outputs.image }}
