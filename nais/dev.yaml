@@ -37,6 +37,10 @@ spec:
   prometheus:
     enabled: true
     path: actuator/prometheus
+  observability:
+    logging:
+      destinations:
+        - id: loki
   env:
     - name: maskinporten.validation.environment
       value: DEV
