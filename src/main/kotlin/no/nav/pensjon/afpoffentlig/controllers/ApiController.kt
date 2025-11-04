@@ -25,6 +25,7 @@ class ApiController(
     private val logger = LoggerFactory.getLogger(javaClass)
     companion object {
         const val FNR = "fnr"
+        const val YTELSE_TYPE = "ytelseType"
         const val CORRELATION_ID = "correlationId"
     }
 
@@ -32,6 +33,7 @@ class ApiController(
     @Maskinporten("nav:pensjon/v1/afpoffentlig")
     fun harAFPoffentlig(
         @RequestHeader(FNR) fnr: String,
+        @RequestParam(YTELSE_TYPE, defaultValue = "AFP") ytelseType: String,
         @RequestHeader(CORRELATION_ID, required = false) correlationId: String?,
         @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
     ): String {
@@ -40,7 +42,7 @@ class ApiController(
         try {
             MDC.putCloseable("X-Request-Id", xRequestId).use {
                 logger.info("Received call with X-Request-Id = $xRequestId, forwarding to TP.")
-                return restTempalateToTP(fnr, xRequestId, auth).body
+                return restTempalateToTP(fnr, ytelseType, xRequestId, auth).body
             }
         } catch(e: HttpClientErrorException) {
             logger.warn("Client Error with X-Request-Id = $xRequestId and statusCode: ${e.statusCode.value()}", e)
@@ -51,11 +53,15 @@ class ApiController(
         }
     }
 
-    private fun restTempalateToTP(fnr: String, xRequestId: String, auth: String) = restTemplate.exchange<String>(
-            UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig").build().toString(),
+    private fun restTempalateToTP(fnr: String, ytelseType: String, xRequestId: String, auth: String) = restTemplate.exchange<String>(
+            buildUrl(ytelseType),
             HttpMethod.GET,
             HttpEntity<Any?>(buildHeaders(fnr, xRequestId, auth))
         ).also { logger.info("statuscode: {}, body: {}", it.statusCode, it.body) }
+
+    private fun buildUrl(ytelseType: String) = UriComponentsBuilder.fromUriString("$tpFssUrl/api/afpoffentlig/harAFPoffentlig")
+        .queryParam(YTELSE_TYPE, ytelseType)
+        .build().toString()
 
     private fun buildHeaders(fnr: String, xRequestId: String, auth: String) = HttpHeaders()
         .apply {
