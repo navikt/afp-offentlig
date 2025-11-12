@@ -60,13 +60,39 @@ class ProxyMappingTest(
         val token = tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")
 
         stubFor(
-            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
+            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig?ytelseType=AFP"))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
                 .willReturn(aResponse().withBody(responseBody))
         )
 
         mockMvc.get("/harAFPoffentlig") {
+            headers {
+                setBearerAuth(token.serialize())
+                set(ApiController.FNR, fnr)
+                set(ApiController.CORRELATION_ID, correlationId)
+            }
+        }.andExpect {
+            status { isOk()}
+            content { string(responseBody) }
+        }
+
+    }
+
+    @Test
+    fun `test gets, request is forwarded with correct method, ytelseType, correlationId header and status - body and ok status is returned correct`() {
+        val correlationId = UUID.randomUUID().toString()
+        val fnr = "121212121212"
+        val token = tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")
+
+        stubFor(
+            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig?ytelseType=LIVSVARIG_AFP"))
+                .withHeader(ApiController.FNR, equalTo(fnr))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
+                .willReturn(aResponse().withBody(responseBody))
+        )
+
+        mockMvc.get("/harAFPoffentlig?ytelseType=LIVSVARIG_AFP") {
             headers {
                 setBearerAuth(token.serialize())
                 set(ApiController.FNR, fnr)
@@ -87,7 +113,7 @@ class ProxyMappingTest(
         val token = tokenGenerator.generateToken("nav:pensjon/v1/afpoffentlig", "12345678910")
 
         stubFor(
-            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig"))
+            get(urlEqualTo("/api/afpoffentlig/harAFPoffentlig?ytelseType=AFP"))
                 .withHeader(ApiController.FNR, equalTo(fnr))
                 .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token.serialize()))
                 .willReturn(aResponse().withStatus(error.value()))
