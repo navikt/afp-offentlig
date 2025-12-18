@@ -1,5 +1,5 @@
 plugins {
-    id("org.springframework.boot") version "3.5.0"
+    id("org.springframework.boot") version "3.5.8"
     id("io.spring.dependency-management") version "1.1.7"
     kotlin("jvm") version "2.1.21"
     kotlin("plugin.spring") version "2.1.21"
@@ -31,11 +31,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
-    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:2.0.3")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:3.1.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.wiremock", "wiremock-jetty12", "3.9.1")
-    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:2.0.3")
+    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:3.1.2")
 }
 
 tasks {
