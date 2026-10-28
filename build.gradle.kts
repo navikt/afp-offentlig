@@ -32,10 +32,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
-    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:3.1.2")
+    implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:3.1.5")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.wiremock", "wiremock-jetty12", "3.9.1")
-    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:3.1.2")
+    testImplementation("no.nav.pensjonsamhandling:maskinporten-validation-spring-test:3.1.5")
 }
 
 tasks {
