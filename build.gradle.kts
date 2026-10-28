@@ -31,7 +31,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
     implementation("no.nav.pensjonsamhandling:maskinporten-validation-spring:3.1.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.wiremock", "wiremock-jetty12", "3.9.1")
